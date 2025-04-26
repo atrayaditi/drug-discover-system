@@ -22,7 +22,7 @@ License
 
 Contact
 
-Overview
+##Overview
 The AI-based drug discovery system incorporates state-of-the-art machine learning models to address key challenges in drug discovery, including:
 
 Target Identification: Predicting biological targets that could be influenced by drug compounds.
@@ -33,7 +33,7 @@ Compound Optimization: Using AI to optimize chemical properties like potency, st
 
 Toxicity Prediction: Estimating the toxicity of compounds early in the discovery process.
 
-Features
+##Features
 Data Integration: Combines data from multiple sources like chemical databases, biological data, and clinical trial results.
 
 Prediction Models: Utilizes various models such as Deep Learning, Random Forest, and Support Vector Machines to predict molecular interactions.
@@ -42,7 +42,7 @@ Interactive Dashboard: Provides a user-friendly interface for visualizing compou
 
 Automated Workflow: Supports automated workflows from data preprocessing to prediction, allowing for efficient testing and validation of compounds.
 
-Technologies Used
+##Technologies Used
 Python: For data preprocessing, model building, and analysis.
 
 TensorFlow / PyTorch: For deep learning model implementation.
