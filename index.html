@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>AI Drug-Target Interaction Predictor</title>
+  <script src="https://cdn.jsdelivr.net/npm/particles.js@2.0.0/particles.min.js"></script>
+  <script src="https://unpkg.com/smiles-drawer@2.0.1/dist/smiles-drawer.min.js"></script> <!-- ✅ Added this line -->
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+      min-height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      color: #fff;
+    }
+
+    .container {
+      background: rgba(255, 255, 255, 0.1);
+      border-radius: 15px;
+      box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.37);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      border: 1px solid rgba(255, 255, 255, 0.18);
+      padding: 30px;
+      width: 90%;
+      max-width: 600px;
+    }
+
+    input, textarea, button {
+      display: block;
+      width: 100%;
+      margin: 10px 0;
+      padding: 12px;
+      font-size: 16px;
+      border-radius: 8px;
+      border: none;
+    }
+
+    input, textarea {
+      background-color: rgba(255, 255, 255, 0.2);
+      color: white;
+      outline: none;
+    }
+
+    input::placeholder, textarea::placeholder {
+      color: #ccc;
+    }
+
+    button {
+      background-color: #00c9ff;
+      background-image: linear-gradient(45deg, #00c9ff, #92fe9d);
+      color: #000;
+      font-weight: bold;
+      cursor: pointer;
+      transition: background 0.3s;
+    }
+
+    button:hover {
+      background-image: linear-gradient(45deg, #92fe9d, #00c9ff);
+    }
+
+    #result {
+      margin-top: 20px;
+      font-size: 18px;
+      font-weight: bold;
+      white-space: pre-line;
+    }
+
+    .strong { color: #2ecc71; }
+    .moderate { color: #f1c40f; }
+    .weak { color: #e74c3c; }
+
+    canvas {
+      display: block;
+      margin: 20px auto;
+      background-color: white;
+      border-radius: 8px;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🔬 AI Drug-Target Interaction Predictor</h2>
+    <label for="smiles">Enter Drug SMILES:</label>
+    <input type="text" id="smiles" placeholder="e.g., CC1=CC=CC=C1">
+    <label for="sequence">Enter Protein Sequence:</label>
+    <textarea id="sequence" placeholder="e.g., MTEITAAMVKELRESTGAGMMDCKNALSETQ..." rows="5"></textarea>
+    <button onclick="predict()">Predict</button>
+    <canvas id="structure-canvas" width="400" height="300"></canvas>
+    <h3 id="result"></h3>
+  </div>
+
+  <script>
+    async function predict() {
+      const smiles = document.getElementById("smiles").value;
+      const sequence = document.getElementById("sequence").value;
+      const result = document.getElementById("result");
+      const canvas = document.getElementById("structure-canvas");
+      result.innerText = "Predicting...";
+
+      drawSmiles(smiles);  // Show chemical structure
+
+      try {
+        const res = await fetch("http://127.0.0.1:5000/predict", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({ smiles, sequence })
+        });
+
+        const data = await res.json();
+        if (res.ok) {
+          const kiba = data.kiba_score;
+          let interpretation = "";
+          let cssClass = "";
+
+          if (kiba > 12) {
+            interpretation = "🟢 Strong binding predicted.";
+            cssClass = "strong";
+          } else if (kiba >= 8) {
+            interpretation = "🟡 Moderate binding predicted.";
+            cssClass = "moderate";
+          } else {
+            interpretation = "🔴 Weak binding predicted.";
+            cssClass = "weak";
+          }
+
+          result.innerHTML = `<span class="${cssClass}">Predicted KIBA Score: ${kiba.toFixed(4)}\n${interpretation}</span>`;
+        } else {
+          result.innerText = "Error: " + data.error;
+        }
+      } catch (err) {
+        result.innerText = "Connection error. Make sure the backend is running.";
+      }
+    }
+
+    function drawSmiles(smiles) {
+      const canvas = document.getElementById("structure-canvas");
+      const drawer = new SmilesDrawer.Drawer({ width: 400, height: 300 });
+
+      SmilesDrawer.parse(smiles, function (tree) {
+        drawer.draw(tree, canvas, "light");
+      }, function (err) {
+        console.error("Failed to parse SMILES:", err);
+        const ctx = canvas.getContext('2d');
+        ctx.clearRect(0, 0, canvas.width, canvas.height);
+        ctx.font = "16px Arial";
+        ctx.fillText("Invalid SMILES", 130, 150);
+      });
+    }
+  </script>
+</body>
+</html>
